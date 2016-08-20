@@ -1,0 +1,13 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{920B9C17-49A2-F705-B941-BE9990913DCE}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "Crescendo",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

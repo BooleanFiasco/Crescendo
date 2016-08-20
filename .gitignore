@@ -60,3 +60,18 @@ Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+# Don't need intermediate files from the game project
+Game/DerivedDataCache/*
+Game/Intermediate/*
+Game/Saved/*
+
+# Don't need game specific VS files
+Game/.vs/
+
+# Keep around game binaries but forget everything else
+Game/Binaries/**/*
+!Game/Binaries/Win64/*.dll
+
+# Also don't need any pesky VS Code files
+*.VC.*
