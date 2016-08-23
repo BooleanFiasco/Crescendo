@@ -3,13 +3,13 @@
 #pragma once
 
 #include "GameFramework/GameMode.h"
-#include "CrescendoGameMode.generated.h"
+#include "CrsGameMode.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class CRESCENDO_API ACrescendoGameMode : public AGameMode
+class CRESCENDO_API ACrsGameMode : public AGameMode
 {
 	GENERATED_BODY()
 	

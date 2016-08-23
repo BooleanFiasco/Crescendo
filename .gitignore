@@ -75,3 +75,6 @@ Game/Binaries/**/*
 
 # Also don't need any pesky VS Code files
 *.VC.*
+
+# Ignore local collections
+Game/Content/Developers
