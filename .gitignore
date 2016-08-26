@@ -78,3 +78,9 @@ Game/Binaries/**/*
 
 # Ignore local collections
 Game/Content/Developers
+
+# Archives are just local
+Archive
+
+# Include some useful tool Executables
+!Tools/7zip/7za.exe
