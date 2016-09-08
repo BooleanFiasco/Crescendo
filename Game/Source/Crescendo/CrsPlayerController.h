@@ -12,8 +12,43 @@ UCLASS()
 class CRESCENDO_API ACrsPlayerController : public APlayerController
 {
 	GENERATED_BODY()
+
+public:
+	ACrsPlayerController();
 	
+protected:
+	// Begin PlayerController interface
+	virtual void PlayerTick(float DeltaTime) override;
+	virtual void SetupInputComponent() override;
+	// End PlayerController interface
 	
-	
-	
+	void OnTouchBegin(const ETouchIndex::Type FingerIndex, const FVector Location);
+	void OnTouchRepeat(const ETouchIndex::Type FingerIndex, const FVector Location);
+	void OnTouchEnd(const ETouchIndex::Type FingerIndex, const FVector Location);
+
+	bool CheckForSwipe(const ETouchIndex::Type FingerIndex, const EInputEvent TouchType);
+	void TrySwipe(ESwipeDirection::Type SwipeDirection);
+
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=TouchInput)
+	float SwipeDistance;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=TouchInput)
+	float AutoSwipeDistance;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=TouchInput)
+	float DiagonalSwipeMin;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=TouchInput)
+	float DiagonalSwipeMax;
+		
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=TouchInput)
+	float VerticalSwipeAngle;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=TouchInput)
+	float HorizontalSwipeAngle;
+
+private:
+	FVector TouchLocations[EKeys::NUM_TOUCH_KEYS];
+	FVector TouchStartLocations[EKeys::NUM_TOUCH_KEYS];
 };

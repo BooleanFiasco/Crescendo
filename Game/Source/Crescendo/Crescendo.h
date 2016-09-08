@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Engine.h"
+#include "CrescendoConstants.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogCrs, Log, All);
 
