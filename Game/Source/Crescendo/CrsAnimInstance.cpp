@@ -12,7 +12,7 @@ void UCrsAnimInstance::AnimNotify_FootPlanted()
 	auto Char = GetCharacterOwner();
 	if (Char == nullptr) return;
 
-	Char->QueuedMove();
+	Char->MoveFinished();
 }
 
 ACrsCharacter* UCrsAnimInstance::GetCharacterOwner() const

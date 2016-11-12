@@ -97,7 +97,7 @@ bool ACrsPlayerController::CheckForSwipe(const ETouchIndex::Type FingerIndex, co
 			Result = ESwipeDirection::UpLeft;
 		}
 	}
-	else if (UpAngle >= -DAngMax && UpAngle <= -DAngMin)
+	else if (UpAngle <= -DAngMax && UpAngle >= -DAngMin)
 	{
 		if (RightAngle > 0)
 		{
@@ -123,5 +123,21 @@ void ACrsPlayerController::TrySwipe(ESwipeDirection::Type SwipeDirection)
 	if (GetCharacter() == nullptr) return;
 
 	auto Char = CastChecked<ACrsCharacter>(GetCharacter());
-	Char->Move();	
+	auto NavDir = UCrsNavPointComponent::SwipeToNavDirection(SwipeDirection);
+
+	// If we're already moving we need to test against the *next* node in the chain rather than our current one
+	if (Char->IsMoving())
+	{
+		
+		Char->QueueMove(SwipeDirection);
+		return;
+	}
+
+	
+	auto Point = Char->CurrentPoint;
+	if (Point != nullptr && Point->GetNavLink(NavDir)->LinkedPoint != nullptr)
+	{
+		Char->DestinationPoint = Point->GetNavLink(NavDir)->LinkedPoint;
+		Char->Move(NavDir);
+	}
 }

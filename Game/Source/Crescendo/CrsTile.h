@@ -16,9 +16,18 @@ public:
 
 	// Begin AActor API
 	virtual void BeginPlay() override;
+	virtual void PostInitializeComponents() override;
+#if WITH_EDITOR
+	virtual void OnConstruction(const FTransform& Transform) override;
+#endif
 	// End AActor API
 
+	TArray<UCrsNavPointComponent*> GetNavPoints() const;
+
 protected:
+	void AttemptLink(ACrsTile* Neighbor);
+	void OnDeferredRelink();
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Components)
 	UBoxComponent* BoxComponent;
 

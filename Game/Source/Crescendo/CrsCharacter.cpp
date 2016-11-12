@@ -3,6 +3,8 @@
 #include "Crescendo.h"
 #include "CrsCharacter.h"
 #include "CrsAnimInstance.h"
+#include "CrsTile.h"
+#include "CrsPlayerController.h"
 
 // Sets default values
 ACrsCharacter::ACrsCharacter()
@@ -10,13 +12,56 @@ ACrsCharacter::ACrsCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	bQueuedMove = false;
+	QueuedMove = ESwipeDirection::None;
 }
 
 // Called when the game starts or when spawned
 void ACrsCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Find nearest nav point and save it
+	auto Cap = GetCapsuleComponent();
+	float HalfHeight = Cap->GetScaledCapsuleHalfHeight();
+	float Radius = Cap->GetScaledCapsuleRadius();
+	FVector Loc = GetActorLocation() - (FVector::UpVector * HalfHeight);
+
+	float BestDistSq = 999999.0f;
+	UCrsNavPointComponent* BestPoint = nullptr;
+	TArray<FOverlapResult> Results;
+	if (GetWorld()->OverlapMultiByObjectType(Results, GetActorLocation(), GetActorQuat(), FCollisionObjectQueryParams::AllObjects, FCollisionShape::MakeCapsule(Radius, HalfHeight * 2.0f)))
+	{
+		for (auto& Result : Results)
+		{
+			if (Result.GetActor() == nullptr || !Result.GetActor()->IsA(ACrsTile::StaticClass()))
+			{
+				continue;
+			}
+
+			// Test all valid points
+			auto Tile = CastChecked<ACrsTile>(Result.GetActor());
+			for (auto& Point : Tile->GetNavPoints())
+			{
+				if (!Point->IsEnabled()) continue;
+
+				float DistSq = FVector::DistSquared(Point->GetComponentLocation(), Loc);
+				if (DistSq < BestDistSq)
+				{
+					BestDistSq = DistSq;
+					BestPoint = Point;
+				}
+			}
+		}
+
+		if (BestPoint != nullptr)
+		{
+			CurrentPoint = BestPoint;
+		}
+		else
+		{
+			// TODO: This should show a warning, and probably and error if you try to save the map in this state.
+		}
+	}
 	
 }
 
@@ -25,6 +70,15 @@ void ACrsCharacter::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 
+	if (CurrentPoint != nullptr)
+	{
+		DrawDebugSphere(GetWorld(), CurrentPoint->GetComponentLocation(), 16.0f, 16, FColor::Red, false, 0.0f);
+	}
+
+	if (DestinationPoint != nullptr)
+	{
+		DrawDebugSphere(GetWorld(), DestinationPoint->GetComponentLocation(), 24.0f, 16, FColor::Green, false, 0.0f);
+	}
 }
 
 // Called to bind functionality to input
@@ -34,12 +88,11 @@ void ACrsCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompon
 
 }
 
-void ACrsCharacter::Move()
+void ACrsCharacter::Move(ENavDirection::Type Direction)
 {
-	if (bQueuedMove) return;
-
 	auto AnimInst = CastChecked<UCrsAnimInstance>(GetMesh()->GetAnimInstance());
-
+	
+	FaceDirection(Direction);
 	if (AnimInst->Montage_IsPlaying(MoveMontage))
 	{
 		FName MoveSection = AnimInst->Montage_GetCurrentSection(MoveMontage);
@@ -54,7 +107,8 @@ void ACrsCharacter::Move()
 		}
 		else
 		{
-			bQueuedMove = true;
+			UE_LOG(LogCrs, Warning, TEXT("Trying to make a new move before previous animation has reached the foot plant section!"));
+			ensure(false);
 			return;
 		}
 
@@ -67,11 +121,48 @@ void ACrsCharacter::Move()
 	}
 }
 
-void ACrsCharacter::QueuedMove()
+void ACrsCharacter::QueueMove(ESwipeDirection::Type Direction)
 {
-	if (bQueuedMove)
+	QueuedMove = Direction;
+}
+
+void ACrsCharacter::MoveFinished()
+{
+	CurrentPoint = DestinationPoint;
+	DestinationPoint = nullptr;
+
+	if (QueuedMove != ESwipeDirection::None)
 	{
-		bQueuedMove = false;
-		Move();
+		auto PC = CastChecked<ACrsPlayerController>(this->Controller);
+		PC->TrySwipe(QueuedMove);
+		QueuedMove = ESwipeDirection::None;
 	}
+}
+
+void ACrsCharacter::FaceDirection(ENavDirection::Type Direction)
+{
+	FVector DirVec = FVector::ForwardVector;
+	switch (Direction)
+	{
+		case ENavDirection::Forward:
+			DirVec = FVector::ForwardVector;
+			break;
+		case ENavDirection::Back:
+			DirVec = -FVector::ForwardVector;
+			break;
+		case ENavDirection::Right:
+			DirVec = FVector::RightVector;
+			break;
+		case ENavDirection::Left:
+			DirVec = -FVector::RightVector;
+			break;
+		default:
+			DirVec = FVector::ForwardVector;
+			break;
+	}
+
+	FRotator temp = GetActorRotation();
+	FRotator newRot = FRotator(0.0f, FMath::RadiansToDegrees(DirVec.HeadingAngle()), 0.0f);
+
+	SetActorRotation(newRot);
 }
