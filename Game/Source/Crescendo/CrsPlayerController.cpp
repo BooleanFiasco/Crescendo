@@ -13,8 +13,8 @@ ACrsPlayerController::ACrsPlayerController()
 	AutoSwipeDistance = 128.0f;
 	DiagonalSwipeMin = 15.0f;
 	DiagonalSwipeMax = 75.0f;
-	VerticalSwipeAngle = 60.0f;
-	HorizontalSwipeAngle = 30.0f;
+	VerticalSwipeAngle = 30.0f;
+	HorizontalSwipeAngle = 60.0f;
 }
 
 void ACrsPlayerController::PlayerTick(float DeltaTime)
@@ -62,6 +62,72 @@ void ACrsPlayerController::OnTouchEnd(const ETouchIndex::Type FingerIndex, const
 	}
 }
 
+ENavDirection::Type ACrsPlayerController::CheckForMovementSwipe(const float& UpAngle, const float& RightAngle)
+{
+	auto Char = CastChecked<ACrsCharacter>(GetCharacter());
+	auto Point = Char->IsMoving() ? Char->DestinationPoint : Char->CurrentPoint;
+	if (Point == nullptr) return ENavDirection::Max;
+
+	// Cache
+	float DAngMin = FMath::Cos(FMath::DegreesToRadians(DiagonalSwipeMin));
+	float DAngMax = FMath::Cos(FMath::DegreesToRadians(DiagonalSwipeMax));
+	float HAng = FMath::Cos(FMath::DegreesToRadians(HorizontalSwipeAngle));
+	float VAng = FMath::Cos(FMath::DegreesToRadians(VerticalSwipeAngle));
+
+	// Test against directional links that this point actually has to make is easier to differentiate
+	// between horizontal, vertical and diagonal swipes.
+	if (Point->GetNavLink(ENavDirection::Forward)->LinkedPoint != nullptr)
+	{
+		if (UpAngle <= DAngMin && UpAngle >= DAngMax && RightAngle > 0)
+		{
+			return ENavDirection::Forward;
+		}
+	}
+
+	if (Point->GetNavLink(ENavDirection::Back)->LinkedPoint != nullptr)
+	{
+		if (UpAngle <= -DAngMax && UpAngle >= -DAngMin && RightAngle < 0)
+		{
+			return ENavDirection::Back;
+		}
+	}
+
+	if (Point->GetNavLink(ENavDirection::Right)->LinkedPoint != nullptr)
+	{
+		if (UpAngle <= -DAngMax && UpAngle >= -DAngMin && RightAngle > 0)
+		{
+			return ENavDirection::Right;
+		}
+	}
+
+	if (Point->GetNavLink(ENavDirection::Left)->LinkedPoint != nullptr)
+	{
+		if (UpAngle <= DAngMin && UpAngle >= DAngMax && RightAngle < 0)
+		{
+			return ENavDirection::Left;
+		}
+	}
+
+	if (Point->GetNavLink(ENavDirection::Up)->LinkedPoint != nullptr)
+	{
+		if (UpAngle >= VAng)
+		{
+			return ENavDirection::Up;
+		}
+	}
+
+	if (Point->GetNavLink(ENavDirection::Down)->LinkedPoint != nullptr)
+	{
+		if (UpAngle <= -VAng)
+		{
+			return ENavDirection::Down;
+		}
+	}
+
+	// Didn't find any matching swipes + link directions
+	return ENavDirection::Max;
+}
+
 bool ACrsPlayerController::CheckForSwipe(const ETouchIndex::Type FingerIndex, const EInputEvent TouchType)
 {
 	FVector SwipeDirection = TouchLocations[FingerIndex] - TouchStartLocations[FingerIndex];
@@ -72,15 +138,28 @@ bool ACrsPlayerController::CheckForSwipe(const ETouchIndex::Type FingerIndex, co
 		return false;
 	}
 
+	if (GetCharacter() == nullptr) return false;
+
 	// Determine direction relative to a vector straight up in screenspace
 	float UpAngle = -FVector::DotProduct(FVector::RightVector, SwipeDirection);
 	float RightAngle = FVector::DotProduct(FVector::ForwardVector, SwipeDirection);
 
+	auto Result = CheckForMovementSwipe(UpAngle, RightAngle);
+	const bool bFoundSwipe = Result != ENavDirection::Max;
+	if (bFoundSwipe)
+	{
+		TryMove(Result);
+	}
+
+	return bFoundSwipe;
+
 	// Cache
-	float DAngMin = FMath::Cos(FMath::DegreesToRadians(DiagonalSwipeMin));
+	/*float DAngMin = FMath::Cos(FMath::DegreesToRadians(DiagonalSwipeMin));
 	float DAngMax = FMath::Cos(FMath::DegreesToRadians(DiagonalSwipeMax));
 	float HAng = FMath::Cos(FMath::DegreesToRadians(HorizontalSwipeAngle));
 	float VAng = FMath::Cos(FMath::DegreesToRadians(VerticalSwipeAngle));
+
+
 
 	// We try the diagonal swipes first as they're the most important, then we do the
 	// horizontal and vertical ones after. Eventually we'll probably want to swap the
@@ -115,29 +194,28 @@ bool ACrsPlayerController::CheckForSwipe(const ETouchIndex::Type FingerIndex, co
 		TrySwipe(Result);
 	}
 
-	return bFoundSwipe;
+	return bFoundSwipe;*/
 }
 
-void ACrsPlayerController::TrySwipe(ESwipeDirection::Type SwipeDirection)
+void ACrsPlayerController::TryMove(ENavDirection::Type Direction)
 {
 	if (GetCharacter() == nullptr) return;
 
 	auto Char = CastChecked<ACrsCharacter>(GetCharacter());
-	auto NavDir = UCrsNavPointComponent::SwipeToNavDirection(SwipeDirection);
 
 	// If we're already moving we need to test against the *next* node in the chain rather than our current one
 	if (Char->IsMoving())
 	{
 		
-		Char->QueueMove(SwipeDirection);
+		Char->QueueMove(Direction);
 		return;
 	}
 
 	
 	auto Point = Char->CurrentPoint;
-	if (Point != nullptr && Point->GetNavLink(NavDir)->LinkedPoint != nullptr)
+	if (Point != nullptr && Point->GetNavLink(Direction)->LinkedPoint != nullptr)
 	{
-		Char->DestinationPoint = Point->GetNavLink(NavDir)->LinkedPoint;
-		Char->Move(NavDir);
+		Char->DestinationPoint = Point->GetNavLink(Direction)->LinkedPoint;
+		Char->Move(Direction);
 	}
 }

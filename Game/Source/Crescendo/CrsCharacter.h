@@ -12,11 +12,8 @@ class CRESCENDO_API ACrsCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
-	UCrsNavPointComponent* CurrentPoint;
-	UCrsNavPointComponent* DestinationPoint;
-
 	// Sets default values for this character's properties
-	ACrsCharacter();
+	ACrsCharacter(const FObjectInitializer& ObjectInitializer);
 
 	// Begin ACharacter interface
 	virtual void BeginPlay() override;
@@ -25,14 +22,63 @@ public:
 	// End ACharacter interface
 
 	void Move(ENavDirection::Type Direction);
-	void QueueMove(ESwipeDirection::Type Direction);
+	void QueueMove(ENavDirection::Type Direction);
 	void MoveFinished();
 	void FaceDirection(ENavDirection::Type Direction);
 	bool IsMoving() const { return DestinationPoint != nullptr; }
 
 protected:
+	void FloorMove(ENavDirection::Type Direction);
+	void WallMove(ENavDirection::Type Direction);
+	void FloorTransition(ENavDirection::Type Direction);
+	void WallTransition(ENavDirection::Type Direction);
+
+public:
+	UCrsNavPointComponent* CurrentPoint;
+	UCrsNavPointComponent* DestinationPoint;
+
+protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=Animations)
 	UAnimMontage* MoveMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animations)
+	UAnimMontage* ClimbUpToWallMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animations)
+	UAnimMontage* ClimbDownToWallMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animations)
+	UAnimMontage* ClimbDownToWallBackwardMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animations)
+	UAnimMontage* ClimbUpToFloorMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animations)
+	UAnimMontage* ClimbDownToFloorMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animations)
+	UAnimMontage* ClimbLeftMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animations)
+	UAnimMontage* ClimbLeftConvexMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animations)
+	UAnimMontage* ClimbLeftConcaveMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animations)
+	UAnimMontage* ClimbRightMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animations)
+	UAnimMontage* ClimbRightConvexMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animations)
+	UAnimMontage* ClimbRightConcaveMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animations)
+	UAnimMontage* ClimbUpMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animations)
+	UAnimMontage* ClimbDownMontage;
 	
 	/** Top down camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera )
@@ -42,5 +88,5 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	class USpringArmComponent* CameraBoom;
 
-	ESwipeDirection::Type QueuedMove;
+	ENavDirection::Type QueuedMove;
 };

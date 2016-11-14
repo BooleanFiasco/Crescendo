@@ -80,6 +80,7 @@ public:
 	bool IsEnabled() const { return bEnabled; }
 	bool IsInitialized() const { return bInitialized; }
 	bool IsOccupied() const { return Occupants.Num() > 0; }
+	bool IsWall() const;
 	
 	void Occupy(AActor* NewOccupant);
 	void Leave(AActor* FormerOccupant);

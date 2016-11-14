@@ -16,7 +16,7 @@ class CRESCENDO_API ACrsPlayerController : public APlayerController
 public:
 	ACrsPlayerController();
 
-	void TrySwipe(ESwipeDirection::Type SwipeDirection);
+	void TryMove(ENavDirection::Type Direction);
 	
 protected:
 	// Begin PlayerController interface
@@ -29,6 +29,7 @@ protected:
 	void OnTouchEnd(const ETouchIndex::Type FingerIndex, const FVector Location);
 
 	bool CheckForSwipe(const ETouchIndex::Type FingerIndex, const EInputEvent TouchType);
+	ENavDirection::Type CheckForMovementSwipe(const float& UpAngle, const float& RightAngle);
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=TouchInput)

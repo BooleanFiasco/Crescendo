@@ -47,7 +47,6 @@ ENavDirection::Type UCrsNavPointComponent::SwipeToNavDirection(ESwipeDirection::
 void UCrsNavPointComponent::OnComponentCreated()
 {
 	Super::OnComponentCreated();
-	//this->Rename(*FString::Printf(TEXT("%s_%s"), *this->GetName(), *GetOuter()->GetName()), this->GetOuter());
 
 	if (GetWorld() != nullptr)
 	{
@@ -312,4 +311,9 @@ void UCrsNavPointComponent::Leave(AActor* FormerOccupant)
 bool UCrsNavPointComponent::CanShare(const AActor& FirstOccupant, const AActor& SecondOccupant) const
 {
 	return false;
+}
+
+bool UCrsNavPointComponent::IsWall() const
+{
+	return FVector::DotProduct(GetUpVector(), FVector::UpVector) < 0.97f;
 }

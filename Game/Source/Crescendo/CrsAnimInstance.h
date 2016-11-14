@@ -17,8 +17,15 @@ class CRESCENDO_API UCrsAnimInstance : public UAnimInstance
 public:
 	UCrsAnimInstance();
 
+	// Begin UAnimInstance interface
+	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+	// End UAnimInstance interface
+
 	UFUNCTION()
 	void AnimNotify_FootPlanted();
+
+	UFUNCTION()
+	void AnimNotify_MoveFinished();
 
 	UFUNCTION(BlueprintCallable, Category=Crescendo)
 	FORCEINLINE ACrsCharacter* GetCharacterOwner() const;
@@ -26,6 +33,5 @@ public:
 public:
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Transient, Category=StateFlags)
 	bool bIsClimbing;
-	
 	
 };

@@ -5,14 +5,16 @@
 #include "CrsAnimInstance.h"
 #include "CrsTile.h"
 #include "CrsPlayerController.h"
+#include "CrsCharacterMovementComponent.h"
 
 // Sets default values
-ACrsCharacter::ACrsCharacter()
+ACrsCharacter::ACrsCharacter(const FObjectInitializer& ObjectInitializer) :
+	Super(ObjectInitializer.SetDefaultSubobjectClass<UCrsCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	QueuedMove = ESwipeDirection::None;
+	QueuedMove = ENavDirection::Max;
 }
 
 // Called when the game starts or when spawned
@@ -22,6 +24,7 @@ void ACrsCharacter::BeginPlay()
 
 	// Find nearest nav point and save it
 	auto Cap = GetCapsuleComponent();
+	Cap->SetEnableGravity(false);
 	float HalfHeight = Cap->GetScaledCapsuleHalfHeight();
 	float Radius = Cap->GetScaledCapsuleRadius();
 	FVector Loc = GetActorLocation() - (FVector::UpVector * HalfHeight);
@@ -90,6 +93,29 @@ void ACrsCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompon
 
 void ACrsCharacter::Move(ENavDirection::Type Direction)
 {
+	if (CurrentPoint->IsWall())
+	{
+		if (DestinationPoint->IsWall())
+		{
+			WallMove(Direction);
+		}
+		else
+		{
+			FloorTransition(Direction);
+		}
+	}
+	else if (DestinationPoint->IsWall())
+	{
+		WallTransition(Direction);
+	}
+	else
+	{
+		FloorMove(Direction);
+	}
+}
+
+void ACrsCharacter::FloorMove(ENavDirection::Type Direction)
+{
 	auto AnimInst = CastChecked<UCrsAnimInstance>(GetMesh()->GetAnimInstance());
 	
 	FaceDirection(Direction);
@@ -121,21 +147,121 @@ void ACrsCharacter::Move(ENavDirection::Type Direction)
 	}
 }
 
-void ACrsCharacter::QueueMove(ESwipeDirection::Type Direction)
+void ACrsCharacter::WallMove(ENavDirection::Type Direction)
+{
+	auto AnimInst = CastChecked<UCrsAnimInstance>(GetMesh()->GetAnimInstance());
+	switch (Direction)
+	{
+		case ENavDirection::Forward:
+		case ENavDirection::Right:
+			if (FVector::DotProduct(CurrentPoint->GetUpVector(), DestinationPoint->GetUpVector()) > 0.97f)
+			{
+				AnimInst->Montage_Play(ClimbRightMontage);
+			}
+			else if (FVector::CrossProduct(CurrentPoint->GetUpVector(), DestinationPoint->GetUpVector()).Z > 0.0f)
+			{
+				AnimInst->Montage_Play(ClimbRightConvexMontage);
+			}
+			else
+			{
+				AnimInst->Montage_Play(ClimbRightConcaveMontage);
+			}
+			break;
+		case ENavDirection::Back:
+		case ENavDirection::Left:
+			if (FVector::DotProduct(CurrentPoint->GetUpVector(), DestinationPoint->GetUpVector()) > 0.97f)
+			{
+				AnimInst->Montage_Play(ClimbLeftMontage);
+			}
+			else if (FVector::CrossProduct(CurrentPoint->GetUpVector(), DestinationPoint->GetUpVector()).Z > 0.0f)
+			{
+				AnimInst->Montage_Play(ClimbLeftConvexMontage);
+			}
+			else
+			{
+				AnimInst->Montage_Play(ClimbLeftConcaveMontage);
+			}
+			break;
+		case ENavDirection::Up:
+			AnimInst->Montage_Play(ClimbUpMontage);
+			break;
+		case ENavDirection::Down:
+			AnimInst->Montage_Play(ClimbDownMontage);
+			break;
+	}
+}
+
+void ACrsCharacter::FloorTransition(ENavDirection::Type Direction)
+{
+	auto AnimInst = CastChecked<UCrsAnimInstance>(GetMesh()->GetAnimInstance());
+	switch (Direction)
+	{
+		case ENavDirection::Down:
+			AnimInst->Montage_Play(ClimbDownToFloorMontage);
+			break;
+		case ENavDirection::Up:
+			AnimInst->Montage_Play(ClimbUpToFloorMontage);
+			break;
+	}
+}
+
+void ACrsCharacter::WallTransition(ENavDirection::Type Direction)
+{
+	auto AnimInst = CastChecked<UCrsAnimInstance>(GetMesh()->GetAnimInstance());
+	switch (Direction)
+	{
+		case ENavDirection::Back:
+			if (FVector::DotProduct(GetActorForwardVector(), FVector::ForwardVector) > 0.97f)
+			{
+				AnimInst->Montage_Play(ClimbDownToWallBackwardMontage);
+			}
+			else
+			{
+				FaceDirection(Direction);
+				AnimInst->Montage_Play(ClimbDownToWallMontage);
+			}
+			break;
+		case ENavDirection::Right:
+			if (FVector::DotProduct(GetActorForwardVector(), -FVector::RightVector) > 0.97f)
+			{
+				AnimInst->Montage_Play(ClimbDownToWallBackwardMontage);
+			}
+			else
+			{
+				FaceDirection(Direction);
+				AnimInst->Montage_Play(ClimbDownToWallMontage);
+			}
+			break;
+		case ENavDirection::Forward:
+		case ENavDirection::Left:
+			FaceDirection(Direction);
+			AnimInst->Montage_Play(ClimbUpToWallMontage);
+			break;
+	}
+	SetActorEnableCollision(false);
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Custom, UCrsCharacterMovementComponent::CustomMovementMode_Climbing);
+}
+
+void ACrsCharacter::QueueMove(ENavDirection::Type Direction)
 {
 	QueuedMove = Direction;
 }
 
 void ACrsCharacter::MoveFinished()
 {
+	if (CurrentPoint->IsWall() && !DestinationPoint->IsWall())
+	{
+		SetActorEnableCollision(true);
+		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	}
 	CurrentPoint = DestinationPoint;
 	DestinationPoint = nullptr;
 
-	if (QueuedMove != ESwipeDirection::None)
+	if (QueuedMove != ENavDirection::Max)
 	{
 		auto PC = CastChecked<ACrsPlayerController>(this->Controller);
-		PC->TrySwipe(QueuedMove);
-		QueuedMove = ESwipeDirection::None;
+		PC->TryMove(QueuedMove);
+		QueuedMove = ENavDirection::Max;
 	}
 }
 
