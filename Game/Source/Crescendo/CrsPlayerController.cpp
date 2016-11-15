@@ -78,7 +78,8 @@ ENavDirection::Type ACrsPlayerController::CheckForMovementSwipe(const float& UpA
 	// between horizontal, vertical and diagonal swipes.
 	if (Point->GetNavLink(ENavDirection::Forward)->LinkedPoint != nullptr)
 	{
-		if (UpAngle <= DAngMin && UpAngle >= DAngMax && RightAngle > 0)
+		auto MaxAng = Point->IsLinkCorner(ENavDirection::Forward) ? FMath::Cos(FMath::DegreesToRadians(90.0f + DiagonalSwipeMin)) : DAngMax;
+		if (UpAngle <= DAngMin && UpAngle >= MaxAng && RightAngle > 0)
 		{
 			return ENavDirection::Forward;
 		}
@@ -86,7 +87,8 @@ ENavDirection::Type ACrsPlayerController::CheckForMovementSwipe(const float& UpA
 
 	if (Point->GetNavLink(ENavDirection::Back)->LinkedPoint != nullptr)
 	{
-		if (UpAngle <= -DAngMax && UpAngle >= -DAngMin && RightAngle < 0)
+		auto MaxAng = Point->IsLinkCorner(ENavDirection::Back) ? FMath::Cos(FMath::DegreesToRadians(90.0f - DiagonalSwipeMin)) : -DAngMax;
+		if (UpAngle <= MaxAng && UpAngle >= -DAngMin && RightAngle < 0)
 		{
 			return ENavDirection::Back;
 		}
@@ -94,7 +96,8 @@ ENavDirection::Type ACrsPlayerController::CheckForMovementSwipe(const float& UpA
 
 	if (Point->GetNavLink(ENavDirection::Right)->LinkedPoint != nullptr)
 	{
-		if (UpAngle <= -DAngMax && UpAngle >= -DAngMin && RightAngle > 0)
+		auto MaxAng = Point->IsLinkCorner(ENavDirection::Right) ? FMath::Cos(FMath::DegreesToRadians(90.0f - DiagonalSwipeMin)) : -DAngMax;
+		if (UpAngle <= MaxAng && UpAngle >= -DAngMin && RightAngle > 0)
 		{
 			return ENavDirection::Right;
 		}
@@ -102,7 +105,8 @@ ENavDirection::Type ACrsPlayerController::CheckForMovementSwipe(const float& UpA
 
 	if (Point->GetNavLink(ENavDirection::Left)->LinkedPoint != nullptr)
 	{
-		if (UpAngle <= DAngMin && UpAngle >= DAngMax && RightAngle < 0)
+		auto MaxAng = Point->IsLinkCorner(ENavDirection::Left) ? FMath::Cos(FMath::DegreesToRadians(90.0f + DiagonalSwipeMin)) : DAngMax;
+		if (UpAngle <= DAngMin && UpAngle >= MaxAng && RightAngle < 0)
 		{
 			return ENavDirection::Left;
 		}
@@ -152,49 +156,6 @@ bool ACrsPlayerController::CheckForSwipe(const ETouchIndex::Type FingerIndex, co
 	}
 
 	return bFoundSwipe;
-
-	// Cache
-	/*float DAngMin = FMath::Cos(FMath::DegreesToRadians(DiagonalSwipeMin));
-	float DAngMax = FMath::Cos(FMath::DegreesToRadians(DiagonalSwipeMax));
-	float HAng = FMath::Cos(FMath::DegreesToRadians(HorizontalSwipeAngle));
-	float VAng = FMath::Cos(FMath::DegreesToRadians(VerticalSwipeAngle));
-
-
-
-	// We try the diagonal swipes first as they're the most important, then we do the
-	// horizontal and vertical ones after. Eventually we'll probably want to swap the
-	// priority of specific directions based on what is available to that tile.
-	auto Result = ESwipeDirection::None;
-	if (UpAngle <= DAngMin && UpAngle >= DAngMax)
-	{
-		if (RightAngle > 0)
-		{
-			Result = ESwipeDirection::UpRight;
-		}
-		else
-		{
-			Result = ESwipeDirection::UpLeft;
-		}
-	}
-	else if (UpAngle <= -DAngMax && UpAngle >= -DAngMin)
-	{
-		if (RightAngle > 0)
-		{
-			Result = ESwipeDirection::DownRight;
-		}
-		else
-		{
-			Result = ESwipeDirection::DownLeft;
-		}
-	}
-
-	bool bFoundSwipe = Result != ESwipeDirection::None;
-	if (bFoundSwipe)
-	{
-		TrySwipe(Result);
-	}
-
-	return bFoundSwipe;*/
 }
 
 void ACrsPlayerController::TryMove(ENavDirection::Type Direction)

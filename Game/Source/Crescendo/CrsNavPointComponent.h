@@ -81,6 +81,7 @@ public:
 	bool IsInitialized() const { return bInitialized; }
 	bool IsOccupied() const { return Occupants.Num() > 0; }
 	bool IsWall() const;
+	bool IsLinkCorner(ENavDirection::Type Direction) const;
 	
 	void Occupy(AActor* NewOccupant);
 	void Leave(AActor* FormerOccupant);

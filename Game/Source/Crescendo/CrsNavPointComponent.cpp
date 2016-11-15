@@ -317,3 +317,9 @@ bool UCrsNavPointComponent::IsWall() const
 {
 	return FVector::DotProduct(GetUpVector(), FVector::UpVector) < 0.97f;
 }
+
+bool UCrsNavPointComponent::IsLinkCorner(ENavDirection::Type Direction) const
+{
+	auto Other = NavLinks[Direction].LinkedPoint;
+	return IsWall() && Other != nullptr && Other->IsWall() && FVector::DotProduct(GetUpVector(), Other->GetUpVector()) < 0.97f;
+}
