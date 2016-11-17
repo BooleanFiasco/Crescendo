@@ -54,6 +54,14 @@ void UCrsNavPointComponent::OnComponentCreated()
 	}
 }
 
+void UCrsNavPointComponent::PreEditChange(UProperty* PropertyThatWillChange)
+{
+	// Always unlink when changing properties
+	BreakLinks();
+
+	Super::PreEditChange(PropertyThatWillChange);
+}
+
 void UCrsNavPointComponent::OnDeferredConstruction()
 {
 	DetermineLinkLocations();
@@ -301,11 +309,13 @@ FNavLinkDetails* UCrsNavPointComponent::GetNavLink(UCrsNavPointComponent* Point)
 void UCrsNavPointComponent::Occupy(AActor* NewOccupant)
 {
 	Occupants.AddUnique(NewOccupant);
+	OnOccupiedEvent.Broadcast(NewOccupant);
 }
 
 void UCrsNavPointComponent::Leave(AActor* FormerOccupant)
 {
 	Occupants.Remove(FormerOccupant);
+	OnLeftEvent.Broadcast(FormerOccupant);
 }
 
 bool UCrsNavPointComponent::CanShare(const AActor& FirstOccupant, const AActor& SecondOccupant) const
@@ -322,4 +332,27 @@ bool UCrsNavPointComponent::IsLinkCorner(ENavDirection::Type Direction) const
 {
 	auto Other = NavLinks[Direction].LinkedPoint;
 	return IsWall() && Other != nullptr && Other->IsWall() && FVector::DotProduct(GetUpVector(), Other->GetUpVector()) < 0.97f;
+}
+
+ENavDirection::Type UCrsNavPointComponent::GetDirectionFromVec(FVector DirVec) const
+{
+	ENavDirection::Type Result = ENavDirection::Max;
+	if (FVector::DotProduct(DirVec, FVector::ForwardVector) > 0.97f)
+	{
+		Result = ENavDirection::Forward;
+	}
+	else if (FVector::DotProduct(DirVec, FVector::RightVector) > 0.97f)
+	{
+		Result = ENavDirection::Right;
+	}
+	else if (FVector::DotProduct(DirVec, -FVector::ForwardVector) > 0.97f)
+	{
+		Result = ENavDirection::Back;
+	}
+	else if (FVector::DotProduct(DirVec, -FVector::RightVector) > 0.97f)
+	{
+		Result = ENavDirection::Left;
+	}
+
+	return Result;
 }

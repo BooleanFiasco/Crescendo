@@ -21,6 +21,8 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 	// End ACharacter interface
 
+	UFUNCTION(BlueprintCallable, Category=Crescendo)
+	void ScriptMove(ENavDirection::Type Direction, int NumPoints, UCrsNavPointComponent* Destination);
 	void Move(ENavDirection::Type Direction);
 	void QueueMove(ENavDirection::Type Direction);
 	void MoveFinished();
@@ -34,6 +36,7 @@ protected:
 	void WallTransition(ENavDirection::Type Direction);
 
 public:
+	UPROPERTY(Transient, BlueprintReadWrite, Category=Crescendo)
 	UCrsNavPointComponent* CurrentPoint;
 	UCrsNavPointComponent* DestinationPoint;
 
@@ -89,4 +92,7 @@ protected:
 	class USpringArmComponent* CameraBoom;
 
 	ENavDirection::Type QueuedMove;
+
+	ENavDirection::Type ScriptedMove;
+	int ScriptedMoves;
 };

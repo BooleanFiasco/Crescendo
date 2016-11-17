@@ -15,6 +15,8 @@ ACrsCharacter::ACrsCharacter(const FObjectInitializer& ObjectInitializer) :
 	PrimaryActorTick.bCanEverTick = true;
 
 	QueuedMove = ENavDirection::Max;
+	ScriptedMove = ENavDirection::Max;
+	ScriptedMoves = 0;
 }
 
 // Called when the game starts or when spawned
@@ -89,6 +91,22 @@ void ACrsCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompon
 {
 	Super::SetupPlayerInputComponent(InputComponent);
 
+}
+
+void ACrsCharacter::ScriptMove(ENavDirection::Type Direction, int NumPoints, UCrsNavPointComponent* Destination)
+{
+	if (NumPoints > 1)
+	{
+		ScriptedMove = Direction;
+		ScriptedMoves = NumPoints - 1;
+	}
+
+	// Always clear queued moves if we have another scripted move to perform; we
+	// only allow caching during the final move of a scripted sequence!
+	QueuedMove = ENavDirection::Max;
+
+	DestinationPoint = Destination;
+	Move(Direction);
 }
 
 void ACrsCharacter::Move(ENavDirection::Type Direction)
@@ -254,8 +272,29 @@ void ACrsCharacter::MoveFinished()
 		SetActorEnableCollision(true);
 		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	}
+
+	// Check for remaining scripted moves first
+	if (ScriptedMove != ENavDirection::Max)
+	{
+		Move(ScriptedMove);
+		if (--ScriptedMoves == 0) ScriptedMove = ENavDirection::Max;
+
+		// Always clear queued moves if we have another scripted move to perform; we
+		// only allow caching during the final move of a scripted sequence!
+		QueuedMove = ENavDirection::Max;
+
+		return;
+	}
+
+	// Transition to next point
+	CurrentPoint->Leave(this);
 	CurrentPoint = DestinationPoint;
-	DestinationPoint = nullptr;
+	DestinationPoint->Occupy(this);
+	// Test before doing this because Occupy might have modified our DestinationPoint via ScriptMove
+	if (DestinationPoint == CurrentPoint)
+	{
+		DestinationPoint = nullptr;
+	}
 
 	if (QueuedMove != ENavDirection::Max)
 	{

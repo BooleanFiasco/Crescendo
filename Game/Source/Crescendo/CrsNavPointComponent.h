@@ -23,12 +23,12 @@ struct CRESCENDO_API FNavLinkDetails
 	UDecalComponent* LinkDecal;
 
 	FNavLinkDetails() {
+		bEnabled = true;
 		Clear();
 	}
 
 	void Clear()
 	{
-		bEnabled = true;
 		LinkedPoint = nullptr;
 		bValid = false;
 		LinkLocation = FVector::ZeroVector;
@@ -47,6 +47,9 @@ struct CRESCENDO_API FNavLinkDetails
 	}
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOccupiedDelegate, AActor*, Occupant);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLeftDelegate, AActor*, Occupant);
+
 UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CRESCENDO_API UCrsNavPointComponent : public USceneComponent
 {
@@ -62,6 +65,7 @@ public:
 	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;
 #if WITH_EDITOR
 	virtual void OnComponentCreated() override;
+	virtual void PreEditChange(UProperty* PropertyThatWillChange) override;
 #endif
 	// End USceneComponent API		
 
@@ -87,6 +91,19 @@ public:
 	void Leave(AActor* FormerOccupant);
 	TArray<AActor*> GetOccupants() const { return Occupants; }
 	bool CanShare(const AActor& FirstOccupant, const AActor& SecondOccupant) const;
+
+	UFUNCTION(BlueprintCallable, Category=Crescendo)
+	ENavDirection::Type GetDirectionFromVec(FVector DirVec) const;
+
+	UFUNCTION(BlueprintCallable, Category=Crescendo)
+	UCrsNavPointComponent* GetLinkedPoint(ENavDirection::Type Direction) const { return NavLinks[Direction].LinkedPoint; }
+
+public:
+	UPROPERTY(BlueprintAssignable, Category=Crescendo)
+	FOnOccupiedDelegate OnOccupiedEvent;
+
+	UPROPERTY(BlueprintAssignable, Category=Crescendo)
+	FOnLeftDelegate OnLeftEvent;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=Linking)
