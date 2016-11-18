@@ -1,6 +1,6 @@
 @echo off
-set day=%date:~4,2%
-set month=%date:~7,2%
+set day=%date:~7,2%
+set month=%date:~4,2%
 set year=%date:~10,4%
 set archname=UE4_Crescendo_Engine_%year%%month%%day%
 set archpath=%cd%\..\Archive\%archname%\Engine
