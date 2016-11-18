@@ -40,14 +40,14 @@ void ACrsPlayerController::OnTouchBegin(const ETouchIndex::Type FingerIndex, con
 
 void ACrsPlayerController::OnTouchRepeat(const ETouchIndex::Type FingerIndex, const FVector Location)
 {
-	if (TouchStartLocations[FingerIndex].IsZero()) return;
+	/*if (TouchStartLocations[FingerIndex].IsZero()) return;
 
 	TouchLocations[FingerIndex] = Location;
 	if (CheckForSwipe(FingerIndex, EInputEvent::IE_Repeat))
 	{
 		TouchStartLocations[FingerIndex] = FVector::ZeroVector;
 		TouchLocations[FingerIndex] = FVector::ZeroVector;
-	}
+	}*/
 }
 
 void ACrsPlayerController::OnTouchEnd(const ETouchIndex::Type FingerIndex, const FVector Location)

@@ -9,6 +9,10 @@ void UCrsCharacterMovementComponent::PhysCustom(float deltaTime, int32 Iteration
 	{
 		case CustomMovementMode_Climbing:
 			PhysFlying(deltaTime, Iterations);
+			if (!HasAnimRootMotion())
+			{
+				this->Velocity = FVector::ZeroVector;
+			}
 			break;
 		default:
 			Super::PhysCustom(deltaTime, Iterations);

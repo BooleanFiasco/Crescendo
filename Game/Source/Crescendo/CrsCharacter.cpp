@@ -17,6 +17,9 @@ ACrsCharacter::ACrsCharacter(const FObjectInitializer& ObjectInitializer) :
 	QueuedMove = ENavDirection::Max;
 	ScriptedMove = ENavDirection::Max;
 	ScriptedMoves = 0;
+
+	CurrentPoint = nullptr;
+	DestinationPoint = nullptr;
 }
 
 // Called when the game starts or when spawned
