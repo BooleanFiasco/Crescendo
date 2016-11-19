@@ -28,7 +28,7 @@ public:
 	void AnimNotify_MoveFinished();
 
 	UFUNCTION(BlueprintCallable, Category=Crescendo)
-	FORCEINLINE ACrsCharacter* GetCharacterOwner() const;
+	ACrsCharacter* GetCharacterOwner() const;
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Transient, Category=StateFlags)

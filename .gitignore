@@ -84,3 +84,7 @@ Archive
 
 # Include some useful tool Executables
 !Tools/7zip/7za.exe
+!Tools/GifCam/GifCam.exe
+
+# Ignore platform Builds
+Game/Build/*

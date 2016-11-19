@@ -12,5 +12,11 @@
 				"Engine"
 			]
 		}
+	],
+	"TargetPlatforms": [
+		"Android",
+		"WindowsNoEditor",
+		"IOS",
+		"HTML5"
 	]
 }
