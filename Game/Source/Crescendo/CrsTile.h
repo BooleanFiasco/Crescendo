@@ -24,6 +24,9 @@ public:
 
 	TArray<UCrsNavPointComponent*> GetNavPoints() const;
 
+	UFUNCTION(BlueprintCallable, Category=Crescendo)
+	void Relink();
+
 protected:
 	void AttemptLink(ACrsTile* Neighbor);
 	void OnDeferredRelink();

@@ -39,7 +39,15 @@ void ACrsTile::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
+	for (auto Point : GetNavPoints())
+	{
+		Point->SetTileOwner(this);
+	}
+}
 
+void ACrsTile::Relink()
+{
+	OnDeferredRelink();
 }
 
 void ACrsTile::OnDeferredRelink()
@@ -65,7 +73,8 @@ void ACrsTile::OnDeferredRelink()
 	{
 		for (auto& Result : Results)
 		{
-			if (Result.GetActor() != nullptr && Result.GetActor()->GetWorld() == GetWorld() && Result.GetActor()->IsA(ACrsTile::StaticClass()))
+			if (Result.GetActor() != nullptr && Result.GetActor()->GetWorld() == GetWorld() && Result.GetActor()->IsA(ACrsTile::StaticClass()) &&
+				Result.GetActor() != this)
 			{
 				AttemptLink(Cast<ACrsTile>(Result.GetActor()));
 			}

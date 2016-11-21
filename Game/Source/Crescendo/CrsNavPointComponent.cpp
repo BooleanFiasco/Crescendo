@@ -2,7 +2,7 @@
 
 #include "Crescendo.h"
 #include "CrsNavPointComponent.h"
-
+#include "CrsTile.h"
 
 // Sets default values for this component's properties
 UCrsNavPointComponent::UCrsNavPointComponent()
@@ -53,10 +53,41 @@ void UCrsNavPointComponent::OnComponentCreated()
 
 void UCrsNavPointComponent::PreEditChange(UProperty* PropertyThatWillChange)
 {
-	// Always unlink when changing properties
-	BreakLinks();
-
 	Super::PreEditChange(PropertyThatWillChange);
+}
+
+void UCrsNavPointComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	// Unlink anyone who's now disabled, and match states for anything set to locked
+	for (auto Link : NavLinks)
+	{
+		if (Link.LinkedPoint != nullptr)
+		{
+			auto OtherLink = Link.LinkedPoint->GetNavLink(this);
+			if (Link.State == ENavLinkState::Disabled)
+			{
+				if (OtherLink != nullptr) OtherLink->State = ENavLinkState::Available;
+				Link.LinkedPoint->UnlinkPoint(this);
+				UnlinkPoint(Link.LinkedPoint);
+			}
+			else
+			{
+				
+				if (OtherLink != nullptr)
+				{
+					OtherLink->State = Link.State;
+				}
+			}
+			
+		}
+		else if (Link.State == ENavLinkState::Locked)
+		{
+			// Don't allow links without points to be set to locked
+			Link.State = ENavLinkState::Available;
+		}
+	}
 }
 
 void UCrsNavPointComponent::OnDeferredConstruction()
@@ -192,16 +223,22 @@ bool UCrsNavPointComponent::AttemptLink(UCrsNavPointComponent* Other)
 	// Test each possible link location
 	for (int i = 0; i < ENavDirection::Max; i++)
 	{
-		if (!NavLinks[i].bEnabled || !NavLinks[i].bValid) continue;
+		if (NavLinks[i].State == ENavLinkState::Disabled || !NavLinks[i].bValid) continue;
 
 		FVector OurLocation = NavLinks[i].LinkLocation;
 		for (int j = 0; j < ENavDirection::Max; j++)
 		{
-			if (!Other->NavLinks[j].bEnabled || !Other->NavLinks[j].bValid) continue;
+			if (Other->NavLinks[j].State == ENavLinkState::Disabled || !Other->NavLinks[j].bValid) continue;
 
 			float DistSq = FVector::DistSquared(OurLocation, Other->NavLinks[j].LinkLocation);
 			if (DistSq <= KINDA_SMALL_NUMBER)
 			{
+				// For locked links we need to make sure our states match up
+				if (NavLinks[i].State == ENavLinkState::Locked)
+				{
+					Other->NavLinks[j].State = ENavLinkState::Locked;
+				}
+
 				CreateLink((ENavDirection::Type)i, Other);
 				Other->CreateLink((ENavDirection::Type)j, this);
 				return true;
@@ -241,7 +278,7 @@ void UCrsNavPointComponent::CreateLinkDecal(ENavDirection::Type LocationIndex)
 
 		Link->LinkDecal->AttachToComponent(this, FAttachmentTransformRules::KeepWorldTransform);
 		Link->LinkDecal->RegisterComponent();
-		Link->LinkDecal->SetDecalMaterial(LinkDecalMaterial);
+		Link->LinkDecal->SetDecalMaterial(Link->State == ENavLinkState::Locked ? LinkDecalMaterialLocked : LinkDecalMaterial);
 		Link->LinkDecal->SetSortOrder(10);
 		Link->LinkDecal->SetWorldScale3D(FVector(1, 1, 1));
 		Link->LinkDecal->DecalSize = LinkDecalSize - FVector(0, LinkDecalOffset * 0.5f, LinkDecalOffset * 0.5f);
@@ -352,4 +389,70 @@ ENavDirection::Type UCrsNavPointComponent::GetDirectionFromVec(FVector DirVec) c
 	}
 
 	return Result;
+}
+
+bool UCrsNavPointComponent::CanOccupy_Implementation(AActor* NewOccupant) const
+{
+	return true;
+}
+
+void UCrsNavPointComponent::SetLinkState(ENavDirection::Type Direction, ENavLinkState::Type NewState)
+{
+	if (NavLinks[Direction].State == NewState) return;
+
+	switch (NewState)
+	{
+		case ENavLinkState::Available:
+			if (NavLinks[Direction].State == ENavLinkState::Disabled)
+			{
+				NavLinks[Direction].State = NewState;
+				TileOwner->Relink();
+			}
+			else
+			{
+				auto OtherLink = NavLinks[Direction].LinkedPoint->GetNavLink(this);
+				OtherLink->State = NewState;
+				NavLinks[Direction].State = NewState;
+				NavLinks[Direction].LinkedPoint->OnLinkUpdated(OtherLink);
+				OnLinkUpdated(&NavLinks[Direction]);
+			}
+			break;
+		case ENavLinkState::Disabled:
+			if (NavLinks[Direction].LinkedPoint != nullptr)
+			{
+				NavLinks[Direction].LinkedPoint->UnlinkPoint(this);
+				NavLinks[Direction].LinkedPoint = nullptr;
+			}
+			NavLinks[Direction].State = NewState;
+			break;
+		case ENavLinkState::Locked:
+			if (NavLinks[Direction].LinkedPoint == nullptr)
+			{
+				UE_LOG(LogCrs, Warning, TEXT("Tried to lock a nav link that was not linked to a point!"));
+			}
+			else
+			{
+				auto OtherLink = NavLinks[Direction].LinkedPoint->GetNavLink(this);
+				OtherLink->State = NewState;
+				NavLinks[Direction].State = NewState;
+				NavLinks[Direction].LinkedPoint->OnLinkUpdated(OtherLink);
+				OnLinkUpdated(&NavLinks[Direction]);
+			}
+			break;
+	}
+}
+
+void UCrsNavPointComponent::OnLinkUpdated(FNavLinkDetails* UpdatedLink)
+{
+	// Recreate decals
+	int LinkIdx = 0;
+	for (LinkIdx = 0; LinkIdx < MAX_NAV_LINKS; LinkIdx++)
+	{
+		if (&NavLinks[LinkIdx] == UpdatedLink) break;
+	}
+
+	if (LinkIdx < MAX_NAV_LINKS)
+	{
+		CreateLinkDecal((ENavDirection::Type)LinkIdx);
+	}
 }

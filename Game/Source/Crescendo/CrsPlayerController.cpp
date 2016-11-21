@@ -164,17 +164,16 @@ void ACrsPlayerController::TryMove(ENavDirection::Type Direction)
 
 	auto Char = CastChecked<ACrsCharacter>(GetCharacter());
 
-	// If we're already moving we need to test against the *next* node in the chain rather than our current one
+	// Buffer additional moves
 	if (Char->IsMoving())
 	{
-		
 		Char->QueueMove(Direction);
 		return;
 	}
 
 	
 	auto Point = Char->CurrentPoint;
-	if (Point != nullptr && Point->GetNavLink(Direction)->LinkedPoint != nullptr)
+	if (Point != nullptr && Point->GetNavLink(Direction)->LinkedPoint != nullptr && Point->GetNavLink(Direction)->LinkedPoint->CanOccupy(Char))
 	{
 		Char->DestinationPoint = Point->GetNavLink(Direction)->LinkedPoint;
 		Char->Move(Direction);
