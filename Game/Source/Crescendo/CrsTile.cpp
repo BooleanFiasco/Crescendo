@@ -73,8 +73,7 @@ void ACrsTile::OnDeferredRelink()
 	{
 		for (auto& Result : Results)
 		{
-			if (Result.GetActor() != nullptr && Result.GetActor()->GetWorld() == GetWorld() && Result.GetActor()->IsA(ACrsTile::StaticClass()) &&
-				Result.GetActor() != this)
+			if (Result.GetActor() != nullptr && Result.GetActor()->GetWorld() == GetWorld() && Result.GetActor()->IsA(ACrsTile::StaticClass()))
 			{
 				AttemptLink(Cast<ACrsTile>(Result.GetActor()));
 			}

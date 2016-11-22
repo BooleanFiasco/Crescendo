@@ -57,6 +57,11 @@ struct CRESCENDO_API FNavLinkDetails
 			LinkDecal = nullptr;
 		}
 	}
+
+	bool IsTraversable() const
+	{
+		return LinkedPoint != nullptr && State == ENavLinkState::Available;
+	}
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOccupiedDelegate, AActor*, Occupant);

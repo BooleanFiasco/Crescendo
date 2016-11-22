@@ -173,7 +173,7 @@ void ACrsPlayerController::TryMove(ENavDirection::Type Direction)
 
 	
 	auto Point = Char->CurrentPoint;
-	if (Point != nullptr && Point->GetNavLink(Direction)->LinkedPoint != nullptr && Point->GetNavLink(Direction)->LinkedPoint->CanOccupy(Char))
+	if (Point != nullptr && Point->GetNavLink(Direction)->IsTraversable() && Point->GetNavLink(Direction)->LinkedPoint->CanOccupy(Char))
 	{
 		Char->DestinationPoint = Point->GetNavLink(Direction)->LinkedPoint;
 		Char->Move(Direction);
