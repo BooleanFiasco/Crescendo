@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Components/SceneComponent.h"
+#include "CrsInteractable.h"
 #include "CrsNavPointComponent.generated.h"
 
 #define MAX_NAV_LINKS		6
@@ -131,6 +132,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category=Crescendo)
 	FOnLeftDelegate OnLeftEvent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Crescendo)
+	TArray<ACrsInteractable*> InteractableTargets;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=Linking)

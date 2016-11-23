@@ -55,11 +55,14 @@ void ACrsPlayerController::OnTouchEnd(const ETouchIndex::Type FingerIndex, const
 	if (TouchStartLocations[FingerIndex].IsZero()) return;
 
 	TouchLocations[FingerIndex] = Location;
-	if (CheckForSwipe(FingerIndex, EInputEvent::IE_Released))
+	if (!CheckForSwipe(FingerIndex, EInputEvent::IE_Released))
 	{
-		TouchStartLocations[FingerIndex] = FVector::ZeroVector;
-		TouchLocations[FingerIndex] = FVector::ZeroVector;
+		// Tap
+		CheckForTap(FingerIndex);
 	}
+
+	TouchStartLocations[FingerIndex] = FVector::ZeroVector;
+	TouchLocations[FingerIndex] = FVector::ZeroVector;
 }
 
 ENavDirection::Type ACrsPlayerController::CheckForMovementSwipe(const float& UpAngle, const float& RightAngle)
@@ -156,6 +159,11 @@ bool ACrsPlayerController::CheckForSwipe(const ETouchIndex::Type FingerIndex, co
 	}
 
 	return bFoundSwipe;
+}
+
+void ACrsPlayerController::CheckForTap(ETouchIndex::Type FingerIndex)
+{
+
 }
 
 void ACrsPlayerController::TryMove(ENavDirection::Type Direction)

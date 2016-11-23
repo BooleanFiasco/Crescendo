@@ -343,12 +343,20 @@ FNavLinkDetails* UCrsNavPointComponent::GetNavLink(UCrsNavPointComponent* Point)
 void UCrsNavPointComponent::Occupy(AActor* NewOccupant)
 {
 	Occupants.AddUnique(NewOccupant);
+	for (auto Interactable : InteractableTargets)
+	{
+		Interactable->Execute_OnActivate(Cast<UObject>(Interactable), this);
+	}
 	OnOccupiedEvent.Broadcast(NewOccupant);
 }
 
 void UCrsNavPointComponent::Leave(AActor* FormerOccupant)
 {
 	Occupants.Remove(FormerOccupant);
+	for (auto Interactable : InteractableTargets)
+	{
+		Interactable->Execute_OnDeactivate(Cast<UObject>(Interactable), this);
+	}
 	OnLeftEvent.Broadcast(FormerOccupant);
 }
 

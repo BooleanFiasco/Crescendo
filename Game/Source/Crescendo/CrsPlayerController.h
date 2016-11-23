@@ -31,6 +31,8 @@ protected:
 	bool CheckForSwipe(const ETouchIndex::Type FingerIndex, const EInputEvent TouchType);
 	ENavDirection::Type CheckForMovementSwipe(const float& UpAngle, const float& RightAngle);
 
+	void CheckForTap(const ETouchIndex::Type FingerIndex);
+
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=TouchInput)
 	float SwipeDistance;
