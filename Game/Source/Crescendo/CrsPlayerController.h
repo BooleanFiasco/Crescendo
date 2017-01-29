@@ -28,6 +28,10 @@ protected:
 	void OnTouchRepeat(const ETouchIndex::Type FingerIndex, const FVector Location);
 	void OnTouchEnd(const ETouchIndex::Type FingerIndex, const FVector Location);
 
+	void LeftStickUp(const float Val);
+	void LeftStickRight(const float Val);
+	void StickToSwipe(float XVal, float YVal);
+
 	bool CheckForSwipe(const ETouchIndex::Type FingerIndex, const EInputEvent TouchType);
 	ENavDirection::Type CheckForMovementSwipe(const float& UpAngle, const float& RightAngle);
 
@@ -51,6 +55,14 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=TouchInput)
 	float HorizontalSwipeAngle;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Gamepad Input")
+	float InputRepeatTime;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Gamepad Input")
+	float InputMinThreshold;
+
+	bool bStickInputTriggered;
 
 private:
 	FVector TouchLocations[EKeys::NUM_TOUCH_KEYS];

@@ -15,6 +15,10 @@ ACrsPlayerController::ACrsPlayerController()
 	DiagonalSwipeMax = 75.0f;
 	VerticalSwipeAngle = 30.0f;
 	HorizontalSwipeAngle = 60.0f;
+
+	InputRepeatTime = 0.5f;
+	InputMinThreshold = 0.5f;
+	bStickInputTriggered = false;
 }
 
 void ACrsPlayerController::PlayerTick(float DeltaTime)
@@ -30,6 +34,44 @@ void ACrsPlayerController::SetupInputComponent()
 	InputComponent->BindTouch(EInputEvent::IE_Pressed, this, &ACrsPlayerController::OnTouchBegin);
 	InputComponent->BindTouch(EInputEvent::IE_Repeat, this, &ACrsPlayerController::OnTouchRepeat);
 	InputComponent->BindTouch(EInputEvent::IE_Released, this, &ACrsPlayerController::OnTouchEnd);
+
+	// Bind gamepad events
+	InputComponent->BindAxis("StickUp", this, &ACrsPlayerController::LeftStickUp);
+	InputComponent->BindAxis("StickRight", this, &ACrsPlayerController::LeftStickRight);
+}
+
+void ACrsPlayerController::LeftStickUp(const float Val)
+{
+	if (FMath::Abs(Val) > InputMinThreshold && !bStickInputTriggered)
+	{
+		bStickInputTriggered = true;
+		StickToSwipe(GetInputAxisValue("StickRight") / 0.5f, Val / 0.5f);
+	}
+	else if (FMath::Abs(Val) < InputMinThreshold && FMath::Abs(GetInputAxisValue("StickRight")) < InputMinThreshold && bStickInputTriggered)
+	{
+		bStickInputTriggered = false;
+	}
+}
+
+void ACrsPlayerController::LeftStickRight(const float Val)
+{
+	if (FMath::Abs(Val) > InputMinThreshold && !bStickInputTriggered)
+	{
+		bStickInputTriggered = true;
+		StickToSwipe(Val / 0.5f, GetInputAxisValue("StickUp") / 0.5f);
+	}
+	else if (FMath::Abs(Val) < InputMinThreshold && FMath::Abs(GetInputAxisValue("StickUp")) < InputMinThreshold && bStickInputTriggered)
+	{
+		bStickInputTriggered = false;
+	}
+}
+
+void ACrsPlayerController::StickToSwipe(float XVal, float YVal)
+{
+	TouchStartLocations[ETouchIndex::Touch1] = FVector(0.1f, 0.1f, 0.0f);
+	TouchLocations[ETouchIndex::Touch1] = FVector(XVal * AutoSwipeDistance, YVal * -AutoSwipeDistance, 0.0f);
+
+	OnTouchEnd(ETouchIndex::Touch1, TouchLocations[0]);
 }
 
 void ACrsPlayerController::OnTouchBegin(const ETouchIndex::Type FingerIndex, const FVector Location)
