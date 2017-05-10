@@ -39,7 +39,15 @@ void ACrsTile::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
+	for (auto Point : GetNavPoints())
+	{
+		Point->SetTileOwner(this);
+	}
+}
 
+void ACrsTile::Relink()
+{
+	OnDeferredRelink();
 }
 
 void ACrsTile::OnDeferredRelink()

@@ -6,7 +6,7 @@ public class Crescendo : ModuleRules
 {
 	public Crescendo(TargetInfo Target)
 	{
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "UnrealEd" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

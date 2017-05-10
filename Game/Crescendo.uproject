@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{920B9C17-49A2-F705-B941-BE9990913DCE}",
+	"EngineAssociation": "{E9E39AF8-4080-EEC2-061F-B8997F000D25}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -9,8 +9,20 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
-				"Engine"
+				"Engine",
+				"UnrealEd"
 			]
+		},
+		{
+			"Name": "CrescendoEditor",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit"
 		}
+	],
+	"TargetPlatforms": [
+		"Android",
+		"WindowsNoEditor",
+		"IOS",
+		"HTML5"
 	]
 }

@@ -20,6 +20,6 @@ public class CrescendoEditorTarget : TargetRules
 		ref List<string> OutExtraModuleNames
 		)
 	{
-		OutExtraModuleNames.AddRange( new string[] { "Crescendo" } );
+		OutExtraModuleNames.AddRange( new string[] { "Crescendo", "CrescendoEditor" } );
 	}
 }

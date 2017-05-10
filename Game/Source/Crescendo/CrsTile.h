@@ -24,13 +24,16 @@ public:
 
 	TArray<UCrsNavPointComponent*> GetNavPoints() const;
 
+	UFUNCTION(BlueprintCallable, Category=Crescendo)
+	void Relink();
+
 protected:
 	void AttemptLink(ACrsTile* Neighbor);
 	void OnDeferredRelink();
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Components)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Components)
 	UBoxComponent* BoxComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Components)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Components)
 	UStaticMeshComponent* MeshComponent;
 };

@@ -1,10 +1,21 @@
 # Crescendo
 Procedural roguelike with a 3D isometric perspective, a unique combat system and intuitive touch controls.
 
-## Cloning the Crescendo repository
-TODO: detail install Git/GitLFS/GitKraken, initial repository cloning.
+## Cloning the Crescendo repository (for programmers):
+1. Install the most recent version of Git-SCM from here: https://git-scm.com/
+2. Next, install the most recent version of Git-LFS from here: https://git-lfs.github.com/
+  * Remember to run the command `git install lfs` as directed in the instructions on that page!
+3. Open a Git Bash terminal and navigate to the directory you want to store your repositories in. *Do not* create your project directory yet - that will happen in the next step.
+4. Run `git clone --recursive https://github.com/BooleanFiasco/Crescendo.git` and wait for the project to finish copying.
+5. Switch into the Crescendo/UnrealEngine directory and run Setup.bat to download and install UE4 dependencies and base content.
+6. Run CreateProjectFiles.bat
+7. Switch back to the Crescendo directory, right-click on the Crescendo.uproject file and choose "Create project files."
+8. Open Crescendo.sln and build!
 
-## Getting the Crescendo engine build
+## Cloning the Crescendo repository (for artists):
+TODO
+
+## Getting the Crescendo engine build (for artists):
 The latest engine build can be found on our Google drive: [Crescendo/Engine Builds](https://drive.google.com/open?id=0B2s873J_IiIEV1FmVUgyUk95azQ)
 
 Build archives names are standardized around when they were made - the last 8 characters of the name will be the date that the build was created in YYYYMMDD format. Thus, the most recent build will always be the *last* one listed in the folder (assuming there is more than one build).

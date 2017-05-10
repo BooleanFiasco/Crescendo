@@ -21,5 +21,10 @@ public class CrescendoTarget : TargetRules
 		)
 	{
 		OutExtraModuleNames.AddRange( new string[] { "Crescendo" } );
+
+		if (UEBuildConfiguration.bBuildEditor)
+		{
+			OutExtraModuleNames.Add("CrescendoEditor");
+		}
 	}
 }
